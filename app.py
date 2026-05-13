@@ -2,7 +2,7 @@ import streamlit as st
 from groq import Groq
 import time
 
-# ---------------- PAGE CONFIG ---------------- #
+# PAGE CONFIGURATION 
 
 st.set_page_config(
     page_title="AI Chatbot",
@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- CUSTOM CSS ---------------- #
+# CUSTOM CSS
 
 st.markdown("""
 <style>
@@ -36,7 +36,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- SYSTEM PROMPT ---------------- #
+# SYSTEM PROMPT
 
 SYSTEM_PROMPT = """
 You are a professional AI assistant.
@@ -52,13 +52,13 @@ Formatting Rules:
 - Format code properly using code blocks
 """
 
-# ---------------- GROQ CLIENT ---------------- #
+# GROQ CLIENT
 
 client = Groq(
     api_key=st.secrets["GROQ_API_KEY"]
 )
 
-# ---------------- SIDEBAR ---------------- #
+# SIDEBAR
 
 with st.sidebar:
 
@@ -85,29 +85,29 @@ with st.sidebar:
 
     st.caption("🚀 Built with Groq + Streamlit")
 
-# ---------------- TITLE ---------------- #
+# TITLE 
 
 st.title("🤖 AI Chatbot")
 st.caption("Fast AI Assistant powered by Groq")
 
-# ---------------- SESSION STATE ---------------- #
+# SESSION STATE
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ---------------- WELCOME MESSAGE ---------------- #
+# WELCOME MESSAGE 
 
 if len(st.session_state.messages) == 0:
     st.info("👋 Hello! Ask me anything.")
 
-# ---------------- DISPLAY CHAT HISTORY ---------------- #
+# DISPLAY CHAT HISTORY 
 
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ---------------- USER INPUT ---------------- #
+#  USER INPUT 
 
 prompt = st.chat_input("Type your message here...")
 
