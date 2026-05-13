@@ -36,6 +36,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ---------------- SYSTEM PROMPT ---------------- #
+
+SYSTEM_PROMPT = """
+You are a professional AI assistant.
+
+Formatting Rules:
+- Always answer in markdown format
+- Use headings for topics
+- Use bullet points for explanations
+- Use numbered lists for step-by-step answers
+- Keep paragraphs short
+- Avoid large blocks of text
+- Use tables when comparing things
+- Format code properly using code blocks
+"""
+
 # ---------------- GROQ CLIENT ---------------- #
 
 client = Groq(
@@ -117,8 +133,16 @@ if prompt:
             try:
 
                 response = client.chat.completions.create(
+
                     model=model,
-                    messages=st.session_state.messages,
+
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": SYSTEM_PROMPT
+                        }
+                    ] + st.session_state.messages,
+
                     temperature=0.7,
                     max_tokens=1024
                 )
@@ -130,11 +154,11 @@ if prompt:
 
                 full_response = ""
 
-                for word in reply.split():
+                for chunk in reply.split(" "):
 
-                    full_response += word + " "
+                    full_response += chunk + " "
 
-                    time.sleep(0.03)
+                    time.sleep(0.02)
 
                     placeholder.markdown(full_response + "▌")
 
