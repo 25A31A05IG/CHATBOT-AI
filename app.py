@@ -131,7 +131,7 @@ if prompt:
                         }
                     ] + st.session_state.messages,
                     temperature=0.7,
-                    max_tokens=1024
+                    max_tokens=512
                 )
 
                 reply = response.choices[0].message.content
