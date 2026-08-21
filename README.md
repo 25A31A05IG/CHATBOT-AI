@@ -348,6 +348,12 @@ The documentation contains:
 
 B.Tech – Computer Science and Engineering
 
+📧 Email: rameshnetheti2008@gmail.com
+
+🔗 LinkedIn: https://www.linkedin.com/in/25a31a05ig?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app
+
+💻 GitHub: https://github.com/25A31A05IG
+
 ---
 
 ## ⭐ Project
