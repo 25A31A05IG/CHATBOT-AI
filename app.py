@@ -32,19 +32,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 SYSTEM_PROMPT = """
-You are a reliable AI assistant with access to real-time web search.
+You are a reliable professional AI assistant with access to real-time web search.
 
 CURRENT INFORMATION RULES:
 
-For any question involving current or recent information, you MUST use web search before answering.
+For questions involving current or recent information, use web search before answering.
 
 This includes:
+
 - Current Prime Ministers
 - Current Chief Ministers
 - Current Presidents
 - Government officials
-- Elections and election results
+- Elections
+- Election results
 - Current affairs
 - Breaking news
 - Recent events
@@ -62,30 +65,33 @@ For political and government questions:
 2. Prefer authoritative government sources and Election Commission sources.
 3. Cross-check important claims with reliable recent sources.
 4. Pay close attention to dates.
-5. Never rely only on your internal knowledge for current information.
+5. Never rely only on internal knowledge for current information.
 6. Never guess a current office holder.
-7. If sources disagree, explain the disagreement instead of guessing.
+7. If sources disagree, explain the disagreement.
 
 For current office-holder questions, verify:
+
 - Person's name
 - Position
 - State or country
 - Political party when relevant
 - Date the person assumed office
 
-For general questions that do not require current information, answer normally.
+For normal questions that do not require current information, answer normally.
 
 When web search is used, provide source citations or links when available.
 
 Formatting rules:
+
 - Give the direct answer first.
 - Use headings when useful.
 - Use bullet points for explanations.
 - Use numbered lists for steps.
 - Use tables for comparisons.
-- Keep paragraphs short.
+- Keep paragraphs reasonably short.
 - Format programming code using code blocks.
 """
+
 
 try:
     client = Groq(
@@ -94,11 +100,16 @@ try:
             "Groq-Model-Version": "latest"
         }
     )
+
 except Exception as e:
-    st.error(f"❌ Groq API configuration error: {e}")
+    st.error(
+        f"❌ Groq API configuration error:\n\n{e}"
+    )
     st.stop()
 
+
 model = "groq/compound-mini"
+
 
 with st.sidebar:
 
@@ -106,39 +117,68 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.info("🤖 Model: Groq Compound Mini")
+    st.info(
+        "🤖 Model: Groq Compound Mini"
+    )
 
-    st.caption("🌐 Real-time web search enabled")
+    st.caption(
+        "🌐 Real-time web search enabled"
+    )
 
     st.markdown("---")
 
     if st.button("🗑️ Clear Chat"):
+
         st.session_state.messages = []
+        st.session_state.summary = ""
+
         st.rerun()
 
     st.markdown("---")
 
-    st.caption("🚀 Built with Groq + Streamlit")
+    st.caption(
+        "🚀 Built with Groq + Streamlit"
+    )
+
 
 st.title("🤖 AI Chatbot")
 
-st.caption("Fast AI Assistant with real-time web search")
+st.caption(
+    "AI Assistant with real-time web search and smart conversation memory"
+)
+
 
 if "messages" not in st.session_state:
+
     st.session_state.messages = []
 
+
+if "summary" not in st.session_state:
+
+    st.session_state.summary = ""
+
+
 if len(st.session_state.messages) == 0:
+
     st.info(
         "👋 Hello! Ask me anything. "
         "I can also search the web for current information."
     )
 
+
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
 
-prompt = st.chat_input("Type your message here...")
+        st.markdown(
+            message["content"]
+        )
+
+
+prompt = st.chat_input(
+    "Type your message here..."
+)
+
 
 if prompt:
 
@@ -149,25 +189,57 @@ if prompt:
         }
     )
 
+
     with st.chat_message("user"):
+
         st.markdown(prompt)
 
-    recent_messages = st.session_state.messages[-10:]
+
+    recent_messages = st.session_state.messages[-8:]
+
+
+    context_messages = []
+
+
+    if st.session_state.summary:
+
+        context_messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "Here is a summary of older parts of "
+                    "the conversation. Use it to maintain "
+                    "continuity when relevant:\n\n"
+                    + st.session_state.summary
+                )
+            }
+        )
+
+
+    context_messages.extend(
+        recent_messages
+    )
+
 
     with st.chat_message("assistant"):
 
-        with st.spinner("Thinking and checking current information..."):
+        with st.spinner(
+            "Thinking and checking current information..."
+        ):
 
             try:
 
                 response = client.chat.completions.create(
+
                     model=model,
+
                     messages=[
                         {
                             "role": "system",
                             "content": SYSTEM_PROMPT
                         }
-                    ] + recent_messages,
+                    ] + context_messages,
+
                     compound_custom={
                         "tools": {
                             "enabled_tools": [
@@ -176,18 +248,29 @@ if prompt:
                             ]
                         }
                     },
+
                     max_completion_tokens=1024
                 )
 
-                reply = response.choices[0].message.content
+
+                reply = (
+                    response
+                    .choices[0]
+                    .message
+                    .content
+                )
+
 
                 placeholder = st.empty()
 
                 full_response = ""
 
+
                 for chunk in reply.split(" "):
 
-                    full_response += chunk + " "
+                    full_response += (
+                        chunk + " "
+                    )
 
                     time.sleep(0.015)
 
@@ -195,7 +278,11 @@ if prompt:
                         full_response + "▌"
                     )
 
-                placeholder.markdown(full_response)
+
+                placeholder.markdown(
+                    full_response
+                )
+
 
                 st.session_state.messages.append(
                     {
@@ -204,16 +291,31 @@ if prompt:
                     }
                 )
 
+
             except Exception as e:
 
                 error_message = str(e)
 
-                if "429" in error_message:
+
+                if "413" in error_message:
+
+                    st.error(
+                        "⚠️ The conversation became too large. "
+                        "Please start a new chat using Clear Chat."
+                    )
+
+
+                elif "429" in error_message:
+
                     st.error(
                         "⏳ Groq rate limit reached. "
                         "Please wait a few seconds and try again."
                     )
+
+
                 else:
+
                     st.error(
-                        f"❌ Error while generating response:\n\n{e}"
+                        "❌ Error while generating response:\n\n"
+                        + error_message
                     )
