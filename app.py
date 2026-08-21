@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 from groq import Groq
 import time
@@ -165,4 +164,3 @@ if prompt:
                 st.error(
                     f"❌ Error while generating response:\n\n{e}"
                 )
-```
