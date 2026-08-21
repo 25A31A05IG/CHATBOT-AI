@@ -61,14 +61,14 @@ with st.sidebar:
 
     st.markdown("---")
 
-    model = st.selectbox(
-        "Choose AI Model",
-        [
-            "llama-3.1-8b-instant",
-            "llama-3.3-70b-versatile"
-        ],
-        index=0
-    )
+   models = client.models.list()
+
+available_models = [m.id for m in models.data]
+
+model = st.selectbox(
+    "Choose AI Model",
+    available_models
+)
 
     st.markdown("---")
 
