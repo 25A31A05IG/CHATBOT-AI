@@ -33,34 +33,42 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 SYSTEM_PROMPT = """
-You are a professional AI assistant.
+You are a professional AI assistant with access to real-time web information.
+
+Your responsibilities:
+
+- Answer questions accurately and clearly.
+- Use web search when the user asks about current, recent, latest, today's, this week's, or time-sensitive information.
+- Use web search when your knowledge may be outdated.
+- For general questions that do not require current information, answer normally.
+- Never pretend that outdated information is current.
+- When web search is used, include relevant source links or citations when available.
 
 Formatting Rules:
 - Always answer in markdown format.
-- Use headings for topics.
+- Use headings when appropriate.
 - Use bullet points for explanations.
 - Use numbered lists for step-by-step answers.
 - Keep paragraphs short.
-- Avoid large blocks of text.
+- Avoid unnecessarily large blocks of text.
 - Use tables when comparing things.
-- Format code properly using code blocks.
+- Format programming code using proper code blocks.
+- Give direct answers before providing additional explanation.
 """
 
 try:
     client = Groq(
-        api_key=st.secrets["GROQ_API_KEY"]
+        api_key=st.secrets["GROQ_API_KEY"],
+        default_headers={
+            "Groq-Model-Version": "latest"
+        }
     )
-except Exception:
+
+except Exception as e:
     st.error("❌ Groq API key is not configured correctly.")
     st.stop()
 
-try:
-    models_response = client.models.list()
-    available_models = [model.id for model in models_response.data]
-
-except Exception as e:
-    st.error(f"❌ Could not retrieve Groq models: {e}")
-    st.stop()
+model = "groq/compound-mini"
 
 with st.sidebar:
 
@@ -68,13 +76,10 @@ with st.sidebar:
 
     st.markdown("---")
 
-    if not available_models:
-        st.error("No models are available for this API key.")
-        st.stop()
+    st.info("🤖 Model: Groq Compound Mini")
 
-    model = st.selectbox(
-        "Choose AI Model",
-        available_models
+    st.caption(
+        "🌐 Real-time web search is available automatically."
     )
 
     st.markdown("---")
@@ -89,13 +94,18 @@ with st.sidebar:
 
 st.title("🤖 AI Chatbot")
 
-st.caption("Fast AI Assistant powered by Groq")
+st.caption(
+    "Fast AI Assistant with real-time web search"
+)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if len(st.session_state.messages) == 0:
-    st.info("👋 Hello! Ask me anything.")
+    st.info(
+        "👋 Hello! Ask me anything. "
+        "I can also search the web for current information."
+    )
 
 for message in st.session_state.messages:
 
@@ -130,8 +140,7 @@ if prompt:
                             "content": SYSTEM_PROMPT
                         }
                     ] + st.session_state.messages,
-                    temperature=0.7,
-                    max_tokens=512
+                    max_completion_tokens=2048
                 )
 
                 reply = response.choices[0].message.content
