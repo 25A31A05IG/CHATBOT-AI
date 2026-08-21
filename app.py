@@ -33,27 +33,58 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 SYSTEM_PROMPT = """
-You are a professional AI assistant with access to real-time web information.
+You are a reliable AI assistant with access to real-time web search.
 
-Your responsibilities:
+CURRENT INFORMATION RULES:
 
-- Answer questions accurately and clearly.
-- Use web search when the user asks about current, recent, latest, today's, this week's, or time-sensitive information.
-- Use web search when your knowledge may be outdated.
-- For general questions that do not require current information, answer normally.
-- Never pretend that outdated information is current.
-- When web search is used, include relevant source links or citations when available.
+For any question involving current or recent information, you MUST use web search before answering.
 
-Formatting Rules:
-- Always answer in markdown format.
-- Use headings when appropriate.
+This includes:
+- Current Prime Ministers
+- Current Chief Ministers
+- Current Presidents
+- Government officials
+- Elections and election results
+- Current affairs
+- Breaking news
+- Recent events
+- Current sports results
+- Current company CEOs
+- Current prices
+- Current laws and policies
+- Today's information
+- This week's information
+- 2026 events
+
+For political and government questions:
+
+1. Search for recent information.
+2. Prefer authoritative government sources and Election Commission sources.
+3. Cross-check important claims with reliable recent sources.
+4. Pay close attention to dates.
+5. Never rely only on your internal knowledge for current information.
+6. Never guess a current office holder.
+7. If sources disagree, explain the disagreement instead of guessing.
+
+For current office-holder questions, verify:
+- Person's name
+- Position
+- State or country
+- Political party when relevant
+- Date the person assumed office
+
+For general questions that do not require current information, answer normally.
+
+When web search is used, provide source citations or links when available.
+
+Formatting rules:
+- Give the direct answer first.
+- Use headings when useful.
 - Use bullet points for explanations.
-- Use numbered lists for step-by-step answers.
+- Use numbered lists for steps.
+- Use tables for comparisons.
 - Keep paragraphs short.
-- Avoid unnecessarily large blocks of text.
-- Use tables when comparing things.
-- Format programming code using proper code blocks.
-- Give direct answers before providing additional explanation.
+- Format programming code using code blocks.
 """
 
 try:
@@ -63,9 +94,8 @@ try:
             "Groq-Model-Version": "latest"
         }
     )
-
 except Exception as e:
-    st.error("❌ Groq API key is not configured correctly.")
+    st.error(f"❌ Groq API configuration error: {e}")
     st.stop()
 
 model = "groq/compound-mini"
@@ -78,9 +108,7 @@ with st.sidebar:
 
     st.info("🤖 Model: Groq Compound Mini")
 
-    st.caption(
-        "🌐 Real-time web search is available automatically."
-    )
+    st.caption("🌐 Real-time web search enabled")
 
     st.markdown("---")
 
@@ -94,9 +122,7 @@ with st.sidebar:
 
 st.title("🤖 AI Chatbot")
 
-st.caption(
-    "Fast AI Assistant with real-time web search"
-)
+st.caption("Fast AI Assistant with real-time web search")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -126,9 +152,11 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    recent_messages = st.session_state.messages[-10:]
+
     with st.chat_message("assistant"):
 
-        with st.spinner("Thinking..."):
+        with st.spinner("Thinking and checking current information..."):
 
             try:
 
@@ -139,8 +167,16 @@ if prompt:
                             "role": "system",
                             "content": SYSTEM_PROMPT
                         }
-                    ] + st.session_state.messages,
-                    max_completion_tokens=2048
+                    ] + recent_messages,
+                    compound_custom={
+                        "tools": {
+                            "enabled_tools": [
+                                "web_search",
+                                "visit_website"
+                            ]
+                        }
+                    },
+                    max_completion_tokens=1024
                 )
 
                 reply = response.choices[0].message.content
@@ -153,7 +189,7 @@ if prompt:
 
                     full_response += chunk + " "
 
-                    time.sleep(0.02)
+                    time.sleep(0.015)
 
                     placeholder.markdown(
                         full_response + "▌"
@@ -170,6 +206,14 @@ if prompt:
 
             except Exception as e:
 
-                st.error(
-                    f"❌ Error while generating response:\n\n{e}"
-                )
+                error_message = str(e)
+
+                if "429" in error_message:
+                    st.error(
+                        "⏳ Groq rate limit reached. "
+                        "Please wait a few seconds and try again."
+                    )
+                else:
+                    st.error(
+                        f"❌ Error while generating response:\n\n{e}"
+                    )
