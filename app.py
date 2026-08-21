@@ -10,7 +10,6 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-
 .main {
     background-color: #0E1117;
 }
@@ -24,62 +23,26 @@ st.markdown("""
 .block-container {
     padding-top: 2rem;
 }
-
-.stTextInput > div > div > input {
-    border-radius: 10px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
-
 SYSTEM_PROMPT = """
-You are a reliable professional AI assistant with access to real-time web search.
+You are a reliable professional AI assistant.
 
-CURRENT INFORMATION RULES:
+For normal questions, answer using your knowledge.
 
-For questions involving current or recent information, use web search before answering.
+For questions involving CURRENT or RECENT information,
+the application may provide web-search results.
 
-This includes:
+When web-search information is provided:
 
-- Current Prime Ministers
-- Current Chief Ministers
-- Current Presidents
-- Government officials
-- Elections
-- Election results
-- Current affairs
-- Breaking news
-- Recent events
-- Current sports results
-- Current company CEOs
-- Current prices
-- Current laws and policies
-- Today's information
-- This week's information
-- 2026 events
-
-For political and government questions:
-
-1. Search for recent information.
-2. Prefer authoritative government sources and Election Commission sources.
-3. Cross-check important claims with reliable recent sources.
-4. Pay close attention to dates.
-5. Never rely only on internal knowledge for current information.
-6. Never guess a current office holder.
-7. If sources disagree, explain the disagreement.
-
-For current office-holder questions, verify:
-
-- Person's name
-- Position
-- State or country
-- Political party when relevant
-- Date the person assumed office
-
-For normal questions that do not require current information, answer normally.
-
-When web search is used, provide source citations or links when available.
+- Prefer recent information.
+- Prefer official government sources for government questions.
+- Prefer Election Commission sources for election questions.
+- Pay attention to dates.
+- Do not contradict reliable current sources using outdated knowledge.
+- Do not guess current office holders.
+- If sources disagree, explain the disagreement.
 
 Formatting rules:
 
@@ -88,10 +51,9 @@ Formatting rules:
 - Use bullet points for explanations.
 - Use numbered lists for steps.
 - Use tables for comparisons.
-- Keep paragraphs reasonably short.
-- Format programming code using code blocks.
+- Keep paragraphs short.
+- Format code using proper code blocks.
 """
-
 
 try:
     client = Groq(
@@ -100,15 +62,50 @@ try:
             "Groq-Model-Version": "latest"
         }
     )
-
 except Exception as e:
-    st.error(
-        f"❌ Groq API configuration error:\n\n{e}"
-    )
+    st.error(f"❌ Groq API configuration error: {e}")
     st.stop()
 
 
-model = "groq/compound-mini"
+NORMAL_MODEL = "llama-3.1-8b-instant"
+WEB_MODEL = "groq/compound-mini"
+
+
+def needs_web_search(question):
+
+    keywords = [
+        "current",
+        "currently",
+        "latest",
+        "today",
+        "now",
+        "recent",
+        "this week",
+        "this month",
+        "2026",
+        "news",
+        "current affairs",
+        "prime minister",
+        "chief minister",
+        "deputy chief minister",
+        "president",
+        "governor",
+        "election",
+        "elections",
+        "election result",
+        "minister",
+        "ias officer",
+        "collector",
+        "who is the cm",
+        "who is the pm"
+    ]
+
+    question_lower = question.lower()
+
+    return any(
+        keyword in question_lower
+        for keyword in keywords
+    )
 
 
 with st.sidebar:
@@ -118,11 +115,12 @@ with st.sidebar:
     st.markdown("---")
 
     st.info(
-        "🤖 Model: Groq Compound Mini"
+        "🤖 AI Model: Groq"
     )
 
     st.caption(
-        "🌐 Real-time web search enabled"
+        "🌐 Web search is automatically used "
+        "for current-information questions."
     )
 
     st.markdown("---")
@@ -130,7 +128,6 @@ with st.sidebar:
     if st.button("🗑️ Clear Chat"):
 
         st.session_state.messages = []
-        st.session_state.summary = ""
 
         st.rerun()
 
@@ -144,7 +141,7 @@ with st.sidebar:
 st.title("🤖 AI Chatbot")
 
 st.caption(
-    "AI Assistant with real-time web search and smart conversation memory"
+    "AI Assistant with real-time information support"
 )
 
 
@@ -153,16 +150,10 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 
-if "summary" not in st.session_state:
-
-    st.session_state.summary = ""
-
-
 if len(st.session_state.messages) == 0:
 
     st.info(
-        "👋 Hello! Ask me anything. "
-        "I can also search the web for current information."
+        "👋 Hello! Ask me anything."
     )
 
 
@@ -189,68 +180,94 @@ if prompt:
         }
     )
 
-
     with st.chat_message("user"):
 
         st.markdown(prompt)
 
 
-    recent_messages = st.session_state.messages[-8:]
+    recent_messages = []
 
+    for message in st.session_state.messages[-8:]:
 
-    context_messages = []
-
-
-    if st.session_state.summary:
-
-        context_messages.append(
+        recent_messages.append(
             {
-                "role": "system",
-                "content": (
-                    "Here is a summary of older parts of "
-                    "the conversation. Use it to maintain "
-                    "continuity when relevant:\n\n"
-                    + st.session_state.summary
-                )
+                "role": message["role"],
+                "content": message["content"][:3000]
             }
         )
 
 
-    context_messages.extend(
-        recent_messages
-    )
+    use_web = needs_web_search(prompt)
+
+
+    if use_web:
+
+        model = WEB_MODEL
+
+    else:
+
+        model = NORMAL_MODEL
 
 
     with st.chat_message("assistant"):
 
-        with st.spinner(
-            "Thinking and checking current information..."
-        ):
+        if use_web:
+
+            status_text = (
+                "🌐 Checking current information..."
+            )
+
+        else:
+
+            status_text = "🤔 Thinking..."
+
+
+        with st.spinner(status_text):
 
             try:
 
-                response = client.chat.completions.create(
+                if use_web:
 
-                    model=model,
+                    response = client.chat.completions.create(
 
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": SYSTEM_PROMPT
-                        }
-                    ] + context_messages,
+                        model=model,
 
-                    compound_custom={
-                        "tools": {
-                            "enabled_tools": [
-                                "web_search",
-                                "visit_website"
-                            ]
-                        }
-                    },
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": SYSTEM_PROMPT
+                            }
+                        ] + recent_messages,
 
-                    max_completion_tokens=1024
-                )
+                        compound_custom={
+                            "tools": {
+                                "enabled_tools": [
+                                    "web_search",
+                                    "visit_website"
+                                ]
+                            }
+                        },
+
+                        max_completion_tokens=1024
+                    )
+
+                else:
+
+                    response = client.chat.completions.create(
+
+                        model=model,
+
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": SYSTEM_PROMPT
+                            }
+                        ] + recent_messages,
+
+                        temperature=0.7,
+
+                        max_tokens=512
+                    )
 
 
                 reply = (
@@ -266,10 +283,10 @@ if prompt:
                 full_response = ""
 
 
-                for chunk in reply.split(" "):
+                for word in reply.split(" "):
 
                     full_response += (
-                        chunk + " "
+                        word + " "
                     )
 
                     time.sleep(0.015)
@@ -297,21 +314,33 @@ if prompt:
                 error_message = str(e)
 
 
-                if "413" in error_message:
-
-                    st.error(
-                        "⚠️ The conversation became too large. "
-                        "Please start a new chat using Clear Chat."
-                    )
-
-
-                elif "429" in error_message:
+                if "429" in error_message:
 
                     st.error(
                         "⏳ Groq rate limit reached. "
                         "Please wait a few seconds and try again."
                     )
 
+                elif "413" in error_message:
+
+                    st.error(
+                        "⚠️ The request was too large. "
+                        "Please try a shorter question."
+                    )
+
+                elif "model_not_found" in error_message:
+
+                    st.error(
+                        "❌ The selected Groq model is "
+                        "not available for this API key."
+                    )
+
+                elif "model_terms_required" in error_message:
+
+                    st.error(
+                        "❌ This Groq model requires "
+                        "additional terms acceptance."
+                    )
 
                 else:
 
