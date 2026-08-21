@@ -10,6 +10,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+
 .main {
     background-color: #0E1117;
 }
@@ -23,26 +24,57 @@ st.markdown("""
 .block-container {
     padding-top: 2rem;
 }
+
 </style>
 """, unsafe_allow_html=True)
+
 
 SYSTEM_PROMPT = """
 You are a reliable professional AI assistant.
 
-For normal questions, answer using your knowledge.
+You have access to real-time browser search.
 
-For questions involving CURRENT or RECENT information,
-the application may provide web-search results.
+For questions about current or recent information, use browser search
+before answering.
 
-When web-search information is provided:
+This includes:
 
-- Prefer recent information.
-- Prefer official government sources for government questions.
-- Prefer Election Commission sources for election questions.
-- Pay attention to dates.
-- Do not contradict reliable current sources using outdated knowledge.
-- Do not guess current office holders.
-- If sources disagree, explain the disagreement.
+- Current Prime Minister
+- Current Chief Ministers
+- Current Deputy Chief Ministers
+- Current Presidents
+- Current Governors
+- IAS officers
+- Government officials
+- Elections
+- Election results
+- Current affairs
+- Breaking news
+- Recent events
+- Current sports results
+- Current company CEOs
+- Current prices
+- Current laws and policies
+- Today's information
+- This week's information
+- 2026 events
+
+For current political and government questions:
+
+1. Search the web for recent information.
+2. Prefer official government websites.
+3. Prefer Election Commission sources for elections.
+4. Prefer recent and reliable news sources when appropriate.
+5. Pay close attention to dates.
+6. Never guess a current office holder.
+7. If reliable sources disagree, explain the disagreement.
+8. Do not use outdated knowledge when current web information is available.
+
+For normal questions that do not require current information,
+answer normally.
+
+When browser search is used, provide citations or source links
+when available.
 
 Formatting rules:
 
@@ -50,62 +82,31 @@ Formatting rules:
 - Use headings when useful.
 - Use bullet points for explanations.
 - Use numbered lists for steps.
-- Use tables for comparisons.
+- Use tables when comparing information.
 - Keep paragraphs short.
-- Format code using proper code blocks.
+- Format programming code using code blocks.
 """
 
+
 try:
+
     client = Groq(
         api_key=st.secrets["GROQ_API_KEY"],
         default_headers={
             "Groq-Model-Version": "latest"
         }
     )
+
 except Exception as e:
-    st.error(f"❌ Groq API configuration error: {e}")
+
+    st.error(
+        f"❌ Groq API configuration error:\n\n{e}"
+    )
+
     st.stop()
 
 
-NORMAL_MODEL = "openai/gpt-oss-120b"
-WEB_MODEL = "groq/compound-mini"
-
-
-def needs_web_search(question):
-
-    keywords = [
-        "current",
-        "currently",
-        "latest",
-        "today",
-        "now",
-        "recent",
-        "this week",
-        "this month",
-        "2026",
-        "news",
-        "current affairs",
-        "prime minister",
-        "chief minister",
-        "deputy chief minister",
-        "president",
-        "governor",
-        "election",
-        "elections",
-        "election result",
-        "minister",
-        "ias officer",
-        "collector",
-        "who is the cm",
-        "who is the pm"
-    ]
-
-    question_lower = question.lower()
-
-    return any(
-        keyword in question_lower
-        for keyword in keywords
-    )
+MODEL = "openai/gpt-oss-120b"
 
 
 with st.sidebar:
@@ -115,12 +116,11 @@ with st.sidebar:
     st.markdown("---")
 
     st.info(
-        "🤖 AI Model: Groq"
+        "🤖 Model: GPT-OSS 120B"
     )
 
     st.caption(
-        "🌐 Web search is automatically used "
-        "for current-information questions."
+        "🌐 Real-time browser search enabled"
     )
 
     st.markdown("---")
@@ -141,7 +141,7 @@ with st.sidebar:
 st.title("🤖 AI Chatbot")
 
 st.caption(
-    "AI Assistant with real-time information support"
+    "AI Assistant with real-time web search"
 )
 
 
@@ -185,89 +185,36 @@ if prompt:
         st.markdown(prompt)
 
 
-    recent_messages = []
-
-    for message in st.session_state.messages[-8:]:
-
-        recent_messages.append(
-            {
-                "role": message["role"],
-                "content": message["content"][:3000]
-            }
-        )
-
-
-    use_web = needs_web_search(prompt)
-
-
-    if use_web:
-
-        model = WEB_MODEL
-
-    else:
-
-        model = NORMAL_MODEL
+    messages = [
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT
+        }
+    ] + st.session_state.messages
 
 
     with st.chat_message("assistant"):
 
-        if use_web:
-
-            status_text = (
-                "🌐 Checking current information..."
-            )
-
-        else:
-
-            status_text = "🤔 Thinking..."
-
-
-        with st.spinner(status_text):
+        with st.spinner(
+            "Thinking..."
+        ):
 
             try:
 
-                if use_web:
+                response = client.chat.completions.create(
 
-                    response = client.chat.completions.create(
+                    model=MODEL,
 
-                        model=model,
+                    messages=messages,
 
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": SYSTEM_PROMPT
-                            }
-                        ] + recent_messages,
+                    tools=[
+                        {
+                            "type": "browser_search"
+                        }
+                    ],
 
-                        compound_custom={
-                            "tools": {
-                                "enabled_tools": [
-                                    "web_search",
-                                    "visit_website"
-                                ]
-                            }
-                        },
-
-                        max_completion_tokens=1024
-                    )
-
-                else:
-
-                    response = client.chat.completions.create(
-
-                        model=model,
-
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": SYSTEM_PROMPT
-                            }
-                        ] + recent_messages,
-
-                        temperature=0.7,
-
-                        max_tokens=512
-                    )
+                    max_completion_tokens=2048
+                )
 
 
                 reply = (
@@ -325,21 +272,14 @@ if prompt:
 
                     st.error(
                         "⚠️ The request was too large. "
-                        "Please try a shorter question."
+                        "Please start a new chat or shorten the conversation."
                     )
 
                 elif "model_not_found" in error_message:
 
                     st.error(
-                        "❌ The selected Groq model is "
-                        "not available for this API key."
-                    )
-
-                elif "model_terms_required" in error_message:
-
-                    st.error(
-                        "❌ This Groq model requires "
-                        "additional terms acceptance."
+                        "❌ GPT-OSS 120B is not available "
+                        "for this API key."
                     )
 
                 else:
