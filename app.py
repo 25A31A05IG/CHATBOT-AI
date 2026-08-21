@@ -67,7 +67,7 @@ except Exception as e:
     st.stop()
 
 
-NORMAL_MODEL = "llama-3.1-8b-instant"
+NORMAL_MODEL = "openai/gpt-oss-120b"
 WEB_MODEL = "groq/compound-mini"
 
 
