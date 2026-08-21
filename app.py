@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 from groq import Groq
 import time
@@ -50,9 +51,16 @@ try:
     client = Groq(
         api_key=st.secrets["GROQ_API_KEY"]
     )
+except Exception:
+    st.error("❌ Groq API key is not configured correctly.")
+    st.stop()
+
+try:
+    models_response = client.models.list()
+    available_models = [model.id for model in models_response.data]
 
 except Exception as e:
-    st.error("❌ Groq API key is not configured correctly.")
+    st.error(f"❌ Could not retrieve Groq models: {e}")
     st.stop()
 
 with st.sidebar:
@@ -61,14 +69,14 @@ with st.sidebar:
 
     st.markdown("---")
 
-   models = client.models.list()
+    if not available_models:
+        st.error("No models are available for this API key.")
+        st.stop()
 
-available_models = [m.id for m in models.data]
-
-model = st.selectbox(
-    "Choose AI Model",
-    available_models
-)
+    model = st.selectbox(
+        "Choose AI Model",
+        available_models
+    )
 
     st.markdown("---")
 
@@ -157,3 +165,4 @@ if prompt:
                 st.error(
                     f"❌ Error while generating response:\n\n{e}"
                 )
+```
