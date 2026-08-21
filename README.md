@@ -39,8 +39,8 @@ The project demonstrates the practical integration of **Generative AI, Large Lan
 
 ## 🛠️ Technologies Used
 
-| **Technology** | **Purpose** |
-| --------------------- | ------------------------------- |
+| Technology | Purpose |
+|---|---|
 | Python | Core programming language |
 | Streamlit | Web application and UI |
 | Groq API | AI model API integration |
@@ -98,8 +98,13 @@ The project demonstrates the practical integration of **Generative AI, Large Lan
                  ┌──────────────────┐
                  │   Streamlit UI   │
                  └──────────────────┘
+```
 
-📂 Project Structure
+---
+
+## 📂 Project Structure
+
+```text
 chatbot-ai/
 │
 ├── app.py
@@ -109,61 +114,132 @@ chatbot-ai/
 │
 └── .streamlit/
     └── secrets.toml
-app.py
+```
+
+### `app.py`
 
 Contains the main chatbot application, Streamlit interface, Groq API integration, GPT-OSS 120B configuration, browser search functionality, conversation handling, typing animation, and error handling.
 
-requirements.txt
+### `requirements.txt`
 
 Contains all Python packages required to run the project.
 
-.streamlit/secrets.toml
+### `.streamlit/secrets.toml`
 
 Stores sensitive configuration such as the Groq API key securely.
-.gitignore
+
+> ⚠️ Never upload `secrets.toml` containing your API key to GitHub.
+
+### `.gitignore`
 
 Prevents sensitive and unnecessary files from being committed to the repository.
 
-README.md
+### `README.md`
 
 Contains the project overview, features, technologies, installation instructions, architecture, and documentation.
 
-⚙️ Installation
-1. Clone the Repository
+---
+
+## ⚙️ Installation
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/25A31A05IG/CHATBOT-AI.git
-2. Open the Project
+```
+
+### 2. Open the Project
+
+```bash
 cd CHATBOT-AI
-3. Create a Virtual Environment
+```
+
+### 3. Create a Virtual Environment
+
+```bash
 python -m venv venv
-4. Activate the Virtual Environment
-Windows
+```
+
+### 4. Activate the Virtual Environment
+
+#### Windows
+
+```bash
 venv\Scripts\activate
-Linux/macOS
+```
+
+#### Linux/macOS
+
+```bash
 source venv/bin/activate
-5. Install Dependencies
+```
+
+### 5. Install Dependencies
+
+```bash
 pip install -r requirements.txt
-🔑 API Configuration
+```
+
+---
+
+## 🔑 API Configuration
 
 The application uses the Groq API to access the GPT-OSS 120B model.
 
-GROQ_API_KEY = "your_groq_api_key_here"
+For local development, create:
 
-▶️ Running the Application
+```text
+.streamlit/secrets.toml
+```
+
+Add:
+
+```toml
+GROQ_API_KEY = "your_groq_api_key_here"
+```
+
+Replace the value with your actual Groq API key.
+
+### Important
+
+Do not share your API key publicly.
+
+Make sure the secret file is not uploaded to GitHub.
+
+Recommended `.gitignore` entries:
+
+```text
+.streamlit/secrets.toml
+venv/
+__pycache__/
+.env
+```
+
+---
+
+## ▶️ Running the Application
 
 Run the following command:
 
+```bash
 streamlit run app.py
+```
 
 The application will start locally and Streamlit will provide a URL similar to:
 
+```text
 http://localhost:8501
+```
 
 Open the URL in your browser to use the chatbot.
 
-💬 How It Works
+---
+
+## 💬 How It Works
 
 The chatbot follows these steps:
 
+```text
 User enters a message
         ↓
 Streamlit receives the message
@@ -187,7 +263,11 @@ Response is returned to the application
 Typing animation displays the response
         ↓
 Response is stored in conversation history
-🌐 Real-Time Web Search
+```
+
+---
+
+## 🌐 Real-Time Web Search
 
 One of the main features of the chatbot is its ability to retrieve current information using browser search.
 
@@ -195,70 +275,95 @@ This is useful because Large Language Models have a knowledge cutoff and may not
 
 The chatbot can use browser search for questions such as:
 
--Who is the current Prime Minister of India?
--Who is the current Chief Minister of Andhra Pradesh?
--Who is the current Deputy Chief Minister of Andhra Pradesh?
--Who is the current Chief Minister of Tamil Nadu?
--What are the current affairs in India?
--What happened recently in India?
+- Who is the current Prime Minister of India?
+- Who is the current Chief Minister of Andhra Pradesh?
+- Who is the current Deputy Chief Minister of Andhra Pradesh?
+- Who is the current Chief Minister of Tamil Nadu?
+- What are the current affairs in India?
+- What happened recently in India?
 
 For time-sensitive questions, the model can retrieve information from the web instead of relying only on its built-in knowledge.
 
 The system prompt also instructs the chatbot to:
 
--Search for recent information
--Prefer official government sources
--Prefer Election Commission sources for elections
--Pay attention to dates
--Avoid guessing current office holders
--Consider disagreements between sources
--Use recent information when available
+- Search for recent information
+- Prefer official government sources
+- Prefer Election Commission sources for elections
+- Pay attention to dates
+- Avoid guessing current office holders
+- Consider disagreements between sources
+- Use recent information when available
 
-🧠 Conversation Context
+---
+
+## 🧠 Conversation Context
 
 The chatbot maintains conversation history using Streamlit session state.
 
-This allows users to ask follow-up questions.
+This allows users to ask follow-up questions without repeating the previous context.
 
-Example
+### Example
 
-User:
+**User:**
 
+```text
 Who is the Prime Minister of India?
+```
 
-Chatbot:
+**Chatbot:**
 
+```text
 The Prime Minister of India is ...
+```
 
-User:
+**User:**
 
+```text
 What political party does he belong to?
+```
 
 The chatbot can use the previous conversation to understand what "he" refers to.
 
-🧪 Example
-User
+---
+
+## 🧪 Example
+
+### User
+
+```text
 What is Artificial Intelligence?
-Chatbot
+```
+
+### Chatbot
+
+```text
 Artificial Intelligence is a field of computer science
 that focuses on creating systems capable of performing
 tasks that normally require human intelligence.
 
-
 Examples include:
-
 
 - Machine Learning
 - Natural Language Processing
 - Computer Vision
 - Robotics
+```
 
 Users can continue the conversation by entering additional questions.
 
-🌐 Current Information Example
-User
+---
+
+## 🌐 Current Information Example
+
+### User
+
+```text
 Who is the current Chief Minister of Andhra Pradesh?
-Processing
+```
+
+### Processing
+
+```text
 User Question
       ↓
 GPT-OSS 120B
@@ -270,83 +375,119 @@ Recent Web Information
 AI Verification
       ↓
 Final Answer
+```
 
 This allows the chatbot to provide information that may have changed after the model's original training data.
 
-🔒 Security
+---
+
+## 🔒 Security
 
 The project follows basic security practices:
 
--API keys are stored using Streamlit Secrets.
--Sensitive secret files are excluded from Git.
--API credentials are not hard-coded into the source code.
--Sensitive information should not be displayed in application logs.
--The Groq API key should never be shared publicly.
+- API keys are stored using Streamlit Secrets.
+- Sensitive secret files are excluded from Git.
+- API credentials are not hard-coded into the source code.
+- Sensitive information should not be displayed in application logs.
+- The Groq API key should never be shared publicly.
 
-⚠️ Limitations
+---
 
--Requires an active internet connection for browser search.
--Depends on the availability of the Groq API.
--API usage may be subject to rate limits.
--AI-generated responses may occasionally contain inaccurate information.
--Search results may sometimes contain outdated or conflicting information.
--Conversation history is limited by the model's context window.
--The chatbot should not be treated as an authoritative source for critical decisions.
--Real-time search depends on the availability and quality of web sources.
+## ⚠️ Limitations
 
-The following concepts are demonstrated:
+- Requires an active internet connection for browser search.
+- Depends on the availability of the Groq API.
+- API usage may be subject to rate limits.
+- AI-generated responses may occasionally contain inaccurate information.
+- Search results may sometimes contain outdated or conflicting information.
+- Conversation history is limited by the model's context window.
+- The chatbot should not be treated as an authoritative source for critical decisions.
+- Real-time search depends on the availability and quality of web sources.
 
--Python application development
--Generative AI
--Large Language Models
--GPT-OSS 120B
--Groq API integration
--Browser Search integration
--Prompt engineering
--Conversational AI
--Streamlit development
--Session state management
--API error handling
--Rate-limit handling
--API security
--Secrets management
--Git and GitHub
--Cloud deployment
+---
 
-📚 Documentation
+## 🚀 Future Enhancements
+
+The project can be extended with:
+
+- 🎙️ Voice input and output
+- 📄 PDF/document question answering
+- 🖼️ Image analysis
+- 🔐 User authentication
+- 💾 Persistent conversation storage
+- 👤 Personalized AI assistants
+- 📥 Conversation export
+- 📱 Mobile application
+- 🌍 Multi-language support
+- 🧠 Automatic conversation summarization
+- 🔍 Advanced source and citation display
+- 🎨 Multiple UI themes
+- 📊 Chat and usage analytics
+- 📚 RAG-based document question answering
+
+---
+
+## 🎯 Learning Outcomes
+
+Through this project, the following concepts are demonstrated:
+
+- Python application development
+- Generative AI
+- Large Language Models
+- GPT-OSS 120B
+- Groq API integration
+- Browser Search integration
+- Prompt engineering
+- Conversational AI
+- Streamlit development
+- Session state management
+- API error handling
+- Rate-limit handling
+- API security
+- Secrets management
+- Git and GitHub
+- Cloud deployment
+
+---
+
+## 📚 Documentation
 
 For complete technical and academic documentation, create:
 
+```text
 documentation/PROJECT_DOCUMENTATION.md
+```
 
 The documentation can contain:
 
--Abstract
--Introduction
--Problem Statement
--Objectives
--Scope
--Proposed System
--System Architecture
--Technologies Used
--System Requirements
--Functional Requirements
--Non-Functional Requirements
--System Workflow
--Browser Search Integration
--Algorithm
--Implementation
--Testing
--Advantages
--Limitations
--Applications
--Future Enhancements
--Conclusion
--References
+- Abstract
+- Introduction
+- Problem Statement
+- Objectives
+- Scope
+- Proposed System
+- System Architecture
+- Technologies Used
+- System Requirements
+- Functional Requirements
+- Non-Functional Requirements
+- System Workflow
+- Browser Search Integration
+- Algorithm
+- Implementation
+- Testing
+- Advantages
+- Limitations
+- Applications
+- Future Enhancements
+- Conclusion
+- References
 
-☁️ Deployment
+---
 
-The application is deployed using Streamlit Community Cloud.
+## ☁️ Deployment
+
+The application is deployed using **Streamlit Community Cloud**.
 
 🚀 Live Application:
 
@@ -354,16 +495,18 @@ https://rameshchatbotai.streamlit.app/
 
 The deployment process includes:
 
--Uploading the project to GitHub.
--Connecting the repository to Streamlit Community Cloud.
--Selecting app.py as the main application file.
--Adding the GROQ_API_KEY through Streamlit Secrets.
--Deploying the application.
--Accessing the chatbot through the generated Streamlit URL.
+1. Uploading the project to GitHub.
+2. Connecting the repository to Streamlit Community Cloud.
+3. Selecting `app.py` as the main application file.
+4. Adding the `GROQ_API_KEY` through Streamlit Secrets.
+5. Deploying the application.
+6. Accessing the chatbot through the generated Streamlit URL.
 
-👨‍💻 Author
+---
 
-Ramesh Netheti
+## 👨‍💻 Author
+
+**Ramesh Netheti**
 
 B.Tech – Computer Science and Engineering
 
@@ -373,6 +516,8 @@ B.Tech – Computer Science and Engineering
 
 💻 GitHub: https://github.com/25A31A05IG
 
-⭐ Project
+---
+
+## ⭐ Project
 
 If you find this project useful, consider giving the repository a ⭐ on GitHub.
